@@ -1,0 +1,20 @@
+{
+  "files.exclude": {
+    "node_modules": true,
+    ".vscode": true,
+    "pnpm-lock.yaml": true,
+    "LICENSE": true,
+    ".npmrc": true,
+    ".nvmrc": true,
+    ".gitignore": true,
+    ".editorconfig": true,
+    ".github": true,
+    ".eslintcache": true,
+    ".eslintrc.json": true,
+    ".eslintignore": true,
+    ".prettierrc": true,
+    ".prettierignore": true,
+    "CHANGELOG.md": true,
+    ".gitignorerc.json": true
+  }
+}

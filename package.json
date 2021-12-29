@@ -1,0 +1,68 @@
+{
+  "name": "@iyowei/cli-fast-gitignore",
+  "description": "命令行工具，用来生成、更新 .gitignore 文件。 ’github/gitignore‘ 模板库已内嵌。",
+  "version": "1.0.0",
+  "bin": {
+    "fast-gitignore": "cli.js",
+    "fgi": "cli.js"
+  },
+  "type": "module",
+  "scripts": {
+    "format": "npx prettier '**/*.{js,mjs,json,md}' --write --loglevel error",
+    "lint": "npx eslint '**/*.js'"
+  },
+  "engines": {
+    "node": ">=12.20.0"
+  },
+  "files": [
+    "cli.js",
+    "templates/**"
+  ],
+  "dependencies": {
+    "@iyowei/callsite-home": "^1.0.1",
+    "@iyowei/fast-gitignore": "^1.0.5",
+    "chalk": "^5.0.0",
+    "cosmiconfig": "^7.0.1",
+    "load-json-file": "^7.0.1",
+    "meow": "^10.1.2",
+    "redent": "^4.0.0",
+    "shelljs": "^0.8.4",
+    "terminal-link": "^3.0.0",
+    "update-notifier": "^5.1.0",
+    "write-json-file": "^5.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.5.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-import": "^2.25.3",
+    "prettier": "^2.5.1"
+  },
+  "keywords": [
+    "git",
+    "gitignore",
+    "初始化",
+    "init",
+    "脚手架",
+    "scaffold",
+    "生成器",
+    "generator",
+    "工具",
+    "tool",
+    "cli",
+    "iyowei"
+  ],
+  "repository": {
+    "url": "git+https://github.com/iyowei/cli-fast-gitignore.git",
+    "type": "git"
+  },
+  "homepage": "https://github.com/iyowei/cli-fast-gitignore#readme",
+  "bugs": {
+    "url": "https://github.com/iyowei/cli-fast-gitignore/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "private": false,
+  "license": "MIT"
+}
