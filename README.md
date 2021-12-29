@@ -1,4 +1,4 @@
-# $ fast-gitignore
+# $ fast-gitignore | fgi [主题] [选项]
 
 命令行工具，用来生成、更新 .gitignore 文件。 ’github/gitignore‘ 模板库已内嵌。
 
@@ -15,7 +15,7 @@
 
 ```
 $ 使用方式
-  $ fast-gitignore|fgi [主题] [...] [选项] [...]
+  $ fast-gitignore | fgi [主题] [选项]
 
   选项
     --out, -o,                                 '.gitignore' 文件存储位置，默认：'process.cwd()'
