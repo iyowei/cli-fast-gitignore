@@ -25,6 +25,8 @@ class CliFastGitignore {
 
   USER_DEFINED_CONFIG = undefined;
 
+  USER_DEFINED_CONFIG_READ_PATH = undefined;
+
   LAST_CACHE = undefined;
 
   LAST_SAVING_PATH = path.join(homedir(), `cli-fast-gitignore-last.json`);
@@ -101,9 +103,15 @@ class CliFastGitignore {
 
       shell.echo('  前提：选择读取预设');
 
+      if (this.CLI.flags.configFromCwd) {
+        this.USER_DEFINED_CONFIG_READ_PATH = this.WP.cwd;
+      } else {
+        this.USER_DEFINED_CONFIG_READ_PATH = this.WP.twd;
+      }
+
       // 从 "工作路径" 或 "指定路径" 读取预设，取决于是否指定了 `--config-from-cwd` 参数
       this.USER_DEFINED_CONFIG = CliFastGitignore.getUserDefinedConfig(
-        this.CLI.flags.configFromCwd ? this.WP.cwd : this.WP.twd,
+        this.USER_DEFINED_CONFIG_READ_PATH,
       );
 
       if (CliFastGitignore.isEmpty(this.USER_DEFINED_CONFIG.topics)) {
@@ -216,57 +224,39 @@ class CliFastGitignore {
     shell.echo('  生成：开始异步任务');
     await Promise.all([
       new Promise((resolve, reject) => {
-        writeFile(
-          CliFastGitignore.resolveRoot('.gitignore', this.DEST),
-          tplData,
-          (err) => {
-            if (err) {
-              reject(err);
-              return;
-            }
+        const OUTPUT = CliFastGitignore.resolve('.gitignore', this.DEST);
+        writeFile(OUTPUT, tplData, (err) => {
+          if (err) {
+            reject(new Error(`生成：创建 "${OUTPUT}" [${err.message}]`));
+            return;
+          }
 
-            shell.echo('  生成：创建 .gitignore');
+          shell.echo(`  生成：创建 "${OUTPUT}"`);
+          resolve(true);
+        });
+      }),
+
+      new Promise((resolve, reject) => {
+        const OUTPUT = path.join(this.WP.twd, '.gitignorerc.json');
+        writeJsonFile(OUTPUT, TMP_PRESET).then(
+          () => {
+            shell.echo(`  生成：创建/更新 "${OUTPUT}"`);
             resolve(true);
+          },
+          (err) => {
+            reject(new Error(`生成：创建/更新 "${OUTPUT}" [${err.message}]`));
           },
         );
       }),
 
       new Promise((resolve, reject) => {
-        if (
-          CliFastGitignore.isEmpty(
-            CliFastGitignore.getUserDefinedConfig(this.WP.twd).topics,
-          )
-        ) {
-          shell.echo(
-            '  生成：期望生成 .gitignore 的位置没有读取到预设，生成一个预设文件，方便后期更新',
-          );
-
-          writeJsonFile(
-            path.join(this.WP.twd, '.gitignorerc.json'),
-            TMP_PRESET,
-          ).then(
-            () => {
-              resolve(true);
-            },
-            (err) => {
-              reject(err);
-            },
-          );
-        }
-
-        resolve(true);
-      }),
-
-      //
-      new Promise((resolve, reject) => {
-        shell.echo('  生成：全局储备当前预设，作为 "上次预设" 使用');
-
         try {
           writeJsonFileSync(this.LAST_SAVING_PATH, TMP_PRESET);
           // 不需要更新 this.LAST_CACHE，因为任务到这里没有任何地方再需要使用 this.LAST_CACHE 了
+          shell.echo('  生成：储备当前预设为 "上次预设"，下次使用');
           resolve(true);
         } catch (err) {
-          reject(err);
+          reject(new Error(`生成：更新 "上次预设" [${err.message}]`));
         }
       }),
     ]).catch((err) => {
@@ -308,7 +298,7 @@ class CliFastGitignore {
     };
   }
 
-  static resolveRoot(relativePath, base) {
+  static resolve(relativePath, base) {
     return path.resolve(realpathSync(base), relativePath);
   }
 
