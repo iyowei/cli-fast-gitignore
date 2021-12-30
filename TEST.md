@@ -70,13 +70,13 @@ fgi -o /Users/iyowei/Development/iyowei/create-esm
 - 当前工作路径不生成预设文件
 - 创建 `/Users/iyowei/Development/iyowei/create-esm/.gitignorerc.json`
 - 生成 `/Users/iyowei/Development/iyowei/create-esm/.gitignore`
-- 更新 "上次预设" <!-- 目前，即使前后内容一致依然会覆写 -->
+- 更新 "上次预设"
 
 ## 5
 
 - 当前工作路径没预设
 - 有 "上次预设" `{ "topics": [ "Node", "Windows" ]}`
-- `/Users/iyowei/Development/iyowei/create-esm` 有预设文件
+- `/Users/iyowei/Development/iyowei/create-esm` 有预设文件 `{ "topics": [ "Node", "Windows" ]}`
 - 为项目 `/Users/iyowei/Development/iyowei/create-esm` 更新 .gitignore 文件
 - 没有输入主题
 
@@ -89,7 +89,7 @@ fgi -o /Users/iyowei/Development/iyowei/create-esm
 - 使用 `/Users/iyowei/Development/iyowei/create-esm/.gitignorerc.json` 预设文件中的主题 Node Windows
 - 不重复创建 `/Users/iyowei/Development/iyowei/create-esm/.gitignorerc.json`
 - 更新 `/Users/iyowei/Development/iyowei/create-esm/.gitignore`
-- 更新 "上次预设" <!-- 目前，即使前后内容一致依然会覆写 -->
+- 不更新 "上次预设"
 
 ## 5
 
