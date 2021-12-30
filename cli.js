@@ -101,29 +101,40 @@ class CliFastGitignore {
 
       this.NO_INPUT = true;
 
-      shell.echo('  前提：选择读取预设');
-
       if (this.CLI.flags.configFromCwd) {
         this.USER_DEFINED_CONFIG_READ_PATH = this.WP.cwd;
       } else {
         this.USER_DEFINED_CONFIG_READ_PATH = this.WP.twd;
       }
 
+      shell.echo(`  前提：选择读取 ${this.USER_DEFINED_CONFIG_READ_PATH} 预设`);
+
       // 从 "工作路径" 或 "指定路径" 读取预设，取决于是否指定了 `--config-from-cwd` 参数
       this.USER_DEFINED_CONFIG = CliFastGitignore.getUserDefinedConfig(
         this.USER_DEFINED_CONFIG_READ_PATH,
       );
 
-      if (CliFastGitignore.isEmpty(this.USER_DEFINED_CONFIG.topics)) {
-        shell.echo('  前提：没有预设，选择读取上次预设');
+      if (
+        CliFastGitignore.isEmpty(this.USER_DEFINED_CONFIG) ||
+        CliFastGitignore.isEmpty(this.USER_DEFINED_CONFIG.topics)
+      ) {
         this.CONFIRMED_TOPICS = this.getLast().topics;
+        shell.echo(
+          `  前提：没有预设，选择读取上次预设 ${this.CONFIRMED_TOPICS.join(
+            ', ',
+          )}`,
+        );
       } else {
-        shell.echo('  前提：选择预设中的主题');
         this.CONFIRMED_TOPICS = this.USER_DEFINED_CONFIG.topics;
+        shell.echo(
+          `  前提：选择预设中的主题 ${this.USER_DEFINED_CONFIG.topics.join(
+            ', ',
+          )}`,
+        );
       }
     } else {
-      shell.echo('  前提：选择手动输入的主题');
       this.CONFIRMED_TOPICS = this.CLI.input;
+      shell.echo(`  前提：选择手动输入的主题 ${this.CONFIRMED_TOPICS}`);
     }
   }
 
@@ -193,7 +204,7 @@ class CliFastGitignore {
     if (this.NO_INPUT) {
       // 1
       // 判断读取到的预设是否有效
-      if (this.USER_DEFINED_CONFIG.topics) {
+      if (this.USER_DEFINED_CONFIG && this.USER_DEFINED_CONFIG.topics) {
         // 2
         if (!CliFastGitignore.isEmpty(this.USER_DEFINED_CONFIG.custom)) {
           // 合并定制的规则，前提：1. `this.USER_DEFINED_CONFIG` 有效；2. `this.USER_DEFINED_CONFIG.custom` 非空
@@ -222,33 +233,25 @@ class CliFastGitignore {
     const tplData = Object.values(gotObjIgnore).join('\n\n\n');
 
     shell.echo('  生成：开始异步任务');
-    await Promise.all([
+
+    const CWD_CONFIGS = CliFastGitignore.getUserDefinedConfig(this.WP.cwd);
+    const TWD_CONFIGS = CliFastGitignore.getUserDefinedConfig(this.WP.twd);
+
+    const TASKS = [
       new Promise((resolve, reject) => {
         const OUTPUT = CliFastGitignore.resolve('.gitignore', this.DEST);
         writeFile(OUTPUT, tplData, (err) => {
           if (err) {
-            reject(new Error(`生成：创建 "${OUTPUT}" [${err.message}]`));
+            reject(new Error(`生成：创建/更新 "${OUTPUT}" [${err.message}]`));
             return;
           }
 
-          shell.echo(`  生成：创建 "${OUTPUT}"`);
+          shell.echo(`  生成：创建/更新 "${OUTPUT}"`);
           resolve(true);
         });
       }),
 
-      new Promise((resolve, reject) => {
-        const OUTPUT = path.join(this.WP.twd, '.gitignorerc.json');
-        writeJsonFile(OUTPUT, TMP_PRESET).then(
-          () => {
-            shell.echo(`  生成：创建/更新 "${OUTPUT}"`);
-            resolve(true);
-          },
-          (err) => {
-            reject(new Error(`生成：创建/更新 "${OUTPUT}" [${err.message}]`));
-          },
-        );
-      }),
-
+      // TODO: 目前，即使前后内容一致依然会覆写
       new Promise((resolve, reject) => {
         try {
           writeJsonFileSync(this.LAST_SAVING_PATH, TMP_PRESET);
@@ -259,7 +262,38 @@ class CliFastGitignore {
           reject(new Error(`生成：更新 "上次预设" [${err.message}]`));
         }
       }),
-    ]).catch((err) => {
+    ];
+
+    /**
+     * 创建 .gitignorerc.json 的场景，
+     * - 使用了 --config-form-cwd 参数，且两个位置读取到的配置不同
+     * - 输出位置没有 .gitignorerc.json
+     */
+    if (
+      (this.CLI.flags.configFromCwd &&
+        !Object.is(JSON.stringify(CWD_CONFIGS), JSON.stringify(TWD_CONFIGS))) ||
+      CliFastGitignore.isEmpty(this.USER_DEFINED_CONFIG)
+    ) {
+      TASKS.push(
+        new Promise((resolve, reject) => {
+          const OUTPUT = path.join(this.WP.twd, '.gitignorerc.json');
+
+          writeJsonFile(OUTPUT, TMP_PRESET, {
+            indent: 2,
+          }).then(
+            () => {
+              shell.echo(`  生成：创建/更新 "${OUTPUT}"`);
+              resolve(true);
+            },
+            (err) => {
+              reject(new Error(`生成：创建/更新 "${OUTPUT}" [${err.message}]`));
+            },
+          );
+        }),
+      );
+    }
+
+    await Promise.all(TASKS).catch((err) => {
       CliFastGitignore.terminateCli(err.message);
     });
 
