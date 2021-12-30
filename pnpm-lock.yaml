@@ -2037,7 +2037,7 @@ packages:
     dev: false
 
   /update-notifier/5.1.0:
-    resolution: {integrity: sha1-SrDXx/NqIx3XMWz3cpMT8CFNmtk=, tarball: update-notifier/download/update-notifier-5.1.0.tgz}
+    resolution: {integrity: sha1-SrDXx/NqIx3XMWz3cpMT8CFNmtk=, tarball: update-notifier/download/update-notifier-5.1.0.tgz?cache=0&sync_timestamp=1633685171473&other_urls=https%3A%2F%2Fregistry.npmmirror.com%2Fupdate-notifier%2Fdownload%2Fupdate-notifier-5.1.0.tgz}
     engines: {node: '>=10'}
     dependencies:
       boxen: 5.1.2
