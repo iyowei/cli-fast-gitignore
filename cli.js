@@ -270,7 +270,7 @@ class CliFastGitignore {
         }
       }),
     ]).catch((err) => {
-      this.terminateCli(err);
+      CliFastGitignore.terminateCli(err.message);
     });
 
     shell.echo('  生成：完成');
