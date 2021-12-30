@@ -6,7 +6,7 @@ import { homedir } from 'os';
 
 import { callsiteHomeSync } from '@iyowei/callsite-home';
 import { fastGitignoreSync } from '@iyowei/fast-gitignore';
-import { writeJsonFile, writeJsonFileSync } from 'write-json-file';
+import { writeJsonFile } from 'write-json-file';
 import { loadJsonFileSync } from 'load-json-file';
 import { cosmiconfigSync } from 'cosmiconfig';
 import updateNotifier from 'update-notifier';
@@ -234,9 +234,6 @@ class CliFastGitignore {
 
     shell.echo('  生成：开始异步任务');
 
-    const CWD_CONFIGS = CliFastGitignore.getUserDefinedConfig(this.WP.cwd);
-    const TWD_CONFIGS = CliFastGitignore.getUserDefinedConfig(this.WP.twd);
-
     const TASKS = [
       new Promise((resolve, reject) => {
         const OUTPUT = CliFastGitignore.resolve('.gitignore', this.DEST);
@@ -253,16 +250,23 @@ class CliFastGitignore {
 
       // TODO: 目前，即使前后内容一致依然会覆写
       new Promise((resolve, reject) => {
-        try {
-          writeJsonFileSync(this.LAST_SAVING_PATH, TMP_PRESET);
-          // 不需要更新 this.LAST_CACHE，因为任务到这里没有任何地方再需要使用 this.LAST_CACHE 了
-          shell.echo('  生成：储备当前预设为 "上次预设"，下次使用');
-          resolve(true);
-        } catch (err) {
-          reject(new Error(`生成：更新 "上次预设" [${err.message}]`));
-        }
+        writeJsonFile(this.LAST_SAVING_PATH, TMP_PRESET, {
+          indent: 2,
+        }).then(
+          () => {
+            // 不需要更新 this.LAST_CACHE，因为任务到这里没有任何地方再需要使用 this.LAST_CACHE 了
+            shell.echo('  生成：储备当前预设为 "上次预设"，下次使用');
+            resolve(true);
+          },
+          (err) => {
+            reject(new Error(`生成：更新 "上次预设" [${err.message}]`));
+          },
+        );
       }),
     ];
+
+    const CWD_CONFIGS = CliFastGitignore.getUserDefinedConfig(this.WP.cwd);
+    const TWD_CONFIGS = CliFastGitignore.getUserDefinedConfig(this.WP.twd);
 
     /**
      * 创建 .gitignorerc.json 的场景，
