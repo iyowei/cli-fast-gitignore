@@ -88,16 +88,23 @@ class CliFastGitignore {
 
     shell.echo('');
 
+    this.getLast();
+    shell.echo(
+      chalk.grey(
+        '  提示：读取上次预设有 2 个用途，读取上次预设主题，判定是否覆写上次预设',
+      ),
+    );
+
     this.collectTopics();
 
     this.DEST = this.getDest();
   }
 
   collectTopics() {
-    shell.echo('  前提：收集主题');
+    shell.echo('  输入：收集主题');
 
     if (this.CLI.input.length === 0) {
-      shell.echo('  前提：未手动输入主题');
+      shell.echo(`  ${chalk.grey('输入：未手动输入主题')}`);
 
       this.NO_INPUT = true;
 
@@ -107,7 +114,7 @@ class CliFastGitignore {
         this.USER_DEFINED_CONFIG_READ_PATH = this.WP.twd;
       }
 
-      shell.echo(`  前提：选择读取 ${this.USER_DEFINED_CONFIG_READ_PATH} 预设`);
+      shell.echo(`  输入：选择读取 ${this.USER_DEFINED_CONFIG_READ_PATH} 预设`);
 
       // 从 "工作路径" 或 "指定路径" 读取预设，取决于是否指定了 `--config-from-cwd` 参数
       this.USER_DEFINED_CONFIG = CliFastGitignore.getUserDefinedConfig(
@@ -118,23 +125,23 @@ class CliFastGitignore {
         CliFastGitignore.isEmpty(this.USER_DEFINED_CONFIG) ||
         CliFastGitignore.isEmpty(this.USER_DEFINED_CONFIG.topics)
       ) {
-        this.CONFIRMED_TOPICS = this.getLast().topics;
+        this.CONFIRMED_TOPICS = this.LAST_CACHE.topics;
         shell.echo(
-          `  前提：没有预设，选择读取上次预设 ${this.CONFIRMED_TOPICS.join(
-            ', ',
-          )}`,
+          `  输入：${chalk.grey(
+            '没有预设',
+          )}，选择读取上次预设 ${this.CONFIRMED_TOPICS.join(', ')}`,
         );
       } else {
         this.CONFIRMED_TOPICS = this.USER_DEFINED_CONFIG.topics;
         shell.echo(
-          `  前提：选择预设中的主题 ${this.USER_DEFINED_CONFIG.topics.join(
+          `  输入：选择预设中的主题 ${this.USER_DEFINED_CONFIG.topics.join(
             ', ',
           )}`,
         );
       }
     } else {
       this.CONFIRMED_TOPICS = this.CLI.input;
-      shell.echo(`  前提：选择手动输入的主题 ${this.CONFIRMED_TOPICS}`);
+      shell.echo(`  输入：选择手动输入的主题 ${this.CONFIRMED_TOPICS}`);
     }
   }
 
@@ -143,46 +150,46 @@ class CliFastGitignore {
     const { out } = flags;
 
     if (CliFastGitignore.isEmpty(out)) {
-      shell.echo(`  前提：提供的输出位置为当前工作路径 ${this.WP.twd}`);
+      shell.echo(`  输入：提供的输出位置为当前工作路径 ${this.WP.twd}`);
       return this.WP.twd;
     }
 
-    shell.echo(`  前提：提供的输出位置为指定路径 ${out}`);
+    shell.echo(`  输入：提供的输出位置为指定路径 ${out}`);
     return out;
   }
 
   getLast() {
     if (this.LAST_CACHE) {
-      shell.echo('  前提：使用缓存');
+      shell.echo('  输入：使用缓存');
       return this.LAST_CACHE;
     }
 
     if (existsSync(this.LAST_SAVING_PATH)) {
-      shell.echo('  前提：读取上次预设');
+      shell.echo('  输入：读取上次预设');
 
       this.LAST_CACHE = loadJsonFileSync(this.LAST_SAVING_PATH);
 
       shell.echo(
         CliFastGitignore.isEmpty(this.LAST_CACHE)
-          ? '  前提：上次预设为空'
-          : '  前提：已读取上次预设',
+          ? `  ${chalk.grey('输入：上次预设为空')}`
+          : '  输入：已读取上次预设',
       );
 
       return this.LAST_CACHE;
     }
 
-    shell.echo('  前提：使用空预设');
+    shell.echo('  输入：使用空预设');
     return this.EMPTY_CONFIG;
   }
 
   prerequisites() {
-    shell.echo(`  前提：检查输出路径 '${this.DEST}' 是否真实`);
+    shell.echo(`  输入：检查输出路径 '${this.DEST}' 是否真实`);
     if (!existsSync(this.DEST)) {
       CliFastGitignore.terminateCli(`'${this.DEST}' 位置无效`);
     }
 
     // TODO: 待定，指定了主题，或者有自定义，2 者皆空则退出程序
-    shell.echo('  前提：检查主题是否有效');
+    shell.echo('  输入：检查主题是否有效');
     if (!this.CONFIRMED_TOPICS) {
       CliFastGitignore.terminateCli('未读取到主题预设');
     }
@@ -190,7 +197,7 @@ class CliFastGitignore {
 
   async main() {
     this.prerequisites();
-    shell.echo('  前提：通过');
+    shell.echo('  决策：通过');
 
     const PAYLOAD = {
       topic: this.CONFIRMED_TOPICS,
@@ -207,7 +214,7 @@ class CliFastGitignore {
       if (this.USER_DEFINED_CONFIG && this.USER_DEFINED_CONFIG.topics) {
         // 2
         if (!CliFastGitignore.isEmpty(this.USER_DEFINED_CONFIG.custom)) {
-          // 合并定制的规则，前提：1. `this.USER_DEFINED_CONFIG` 有效；2. `this.USER_DEFINED_CONFIG.custom` 非空
+          // 合并定制的规则，输入：1. `this.USER_DEFINED_CONFIG` 有效；2. `this.USER_DEFINED_CONFIG.custom` 非空
           PAYLOAD.custom = this.USER_DEFINED_CONFIG.custom;
         }
       } else if (!CliFastGitignore.isEmpty(this.LAST_CACHE.custom)) {
@@ -232,38 +239,48 @@ class CliFastGitignore {
     const gotObjIgnore = fastGitignoreSync(PAYLOAD);
     const tplData = Object.values(gotObjIgnore).join('\n\n\n');
 
-    shell.echo('  生成：开始异步任务');
-
     const TASKS = [
       new Promise((resolve, reject) => {
         const OUTPUT = CliFastGitignore.resolve('.gitignore', this.DEST);
         writeFile(OUTPUT, tplData, (err) => {
           if (err) {
-            reject(new Error(`生成：创建/更新 "${OUTPUT}" [${err.message}]`));
+            reject(new Error(`输出：创建/更新 "${OUTPUT}" [${err.message}]`));
             return;
           }
 
-          shell.echo(`  生成：创建/更新 "${OUTPUT}"`);
+          shell.echo(`  输出：创建/更新 "${OUTPUT}"`);
           resolve(true);
         });
       }),
-
-      // TODO: 目前，即使前后内容一致依然会覆写
-      new Promise((resolve, reject) => {
-        writeJsonFile(this.LAST_SAVING_PATH, TMP_PRESET, {
-          indent: 2,
-        }).then(
-          () => {
-            // 不需要更新 this.LAST_CACHE，因为任务到这里没有任何地方再需要使用 this.LAST_CACHE 了
-            shell.echo('  生成：储备当前预设为 "上次预设"，下次使用');
-            resolve(true);
-          },
-          (err) => {
-            reject(new Error(`生成：更新 "上次预设" [${err.message}]`));
-          },
-        );
-      }),
     ];
+
+    if (
+      !Object.is(JSON.stringify(this.LAST_CACHE), JSON.stringify(TMP_PRESET))
+    ) {
+      shell.echo('  决策：准备更新 "上次预设"');
+      TASKS.push(
+        new Promise((resolve, reject) => {
+          writeJsonFile(this.LAST_SAVING_PATH, TMP_PRESET, {
+            indent: 2,
+          }).then(
+            () => {
+              // 不需要更新 this.LAST_CACHE，因为任务到这里没有任何地方再需要使用 this.LAST_CACHE 了
+              shell.echo('输出：储备当前预设为 "上次预设"，下次使用');
+              resolve(true);
+            },
+            (err) => {
+              reject(new Error(`输出：更新 "上次预设" [${err.message}]`));
+            },
+          );
+        }),
+      );
+    } else {
+      shell.echo(
+        `  ${chalk.grey(
+          '决策：仅在 "运行时预设" 与 "上次预设" 内容不一致时覆写',
+        )}`,
+      );
+    }
 
     const CWD_CONFIGS = CliFastGitignore.getUserDefinedConfig(this.WP.cwd);
     const TWD_CONFIGS = CliFastGitignore.getUserDefinedConfig(this.WP.twd);
@@ -278,30 +295,35 @@ class CliFastGitignore {
         !Object.is(JSON.stringify(CWD_CONFIGS), JSON.stringify(TWD_CONFIGS))) ||
       CliFastGitignore.isEmpty(this.USER_DEFINED_CONFIG)
     ) {
+      shell.echo('  决策：准备创建/更新预设文件');
+
       TASKS.push(
         new Promise((resolve, reject) => {
           const OUTPUT = path.join(this.WP.twd, '.gitignorerc.json');
-
           writeJsonFile(OUTPUT, TMP_PRESET, {
             indent: 2,
           }).then(
             () => {
-              shell.echo(`  生成：创建/更新 "${OUTPUT}"`);
+              shell.echo(`  输出：创建/更新 "${OUTPUT}"`);
               resolve(true);
             },
             (err) => {
-              reject(new Error(`生成：创建/更新 "${OUTPUT}" [${err.message}]`));
+              reject(new Error(`输出：创建/更新 "${OUTPUT}" [${err.message}]`));
             },
           );
         }),
+      );
+    } else {
+      shell.echo(
+        `  ${chalk.grey(
+          `决策：已存在预设文件 ${path.join(this.WP.twd, '.gitignorerc.json')}`,
+        )} `,
       );
     }
 
     await Promise.all(TASKS).catch((err) => {
       CliFastGitignore.terminateCli(err.message);
     });
-
-    shell.echo('  生成：完成');
 
     this.success();
   }
