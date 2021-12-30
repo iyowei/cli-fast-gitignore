@@ -107,7 +107,7 @@ fgi -o /Users/iyowei/Development/iyowei/create-esm
 
 - 使用 `/Users/iyowei/Development/iyowei/create-esm/.gitignorerc.json` 预设中的主题 Node Windows
 - 更新 `/Users/iyowei/Development/iyowei/create-esm/.gitignore`
-- 更新 "上次预设" <!-- 目前，即使前后内容一致依然会覆写 -->
+- 更新 "上次预设"
 
 ## 6
 

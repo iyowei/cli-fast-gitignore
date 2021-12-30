@@ -114,7 +114,9 @@ class CliFastGitignore {
         this.USER_DEFINED_CONFIG_READ_PATH = this.WP.twd;
       }
 
-      shell.echo(`  输入：选择读取 ${this.USER_DEFINED_CONFIG_READ_PATH} 预设`);
+      shell.echo(
+        `  输入：选择读取 "${this.USER_DEFINED_CONFIG_READ_PATH}" 预设`,
+      );
 
       // 从 "工作路径" 或 "指定路径" 读取预设，取决于是否指定了 `--config-from-cwd` 参数
       this.USER_DEFINED_CONFIG = CliFastGitignore.getUserDefinedConfig(
@@ -127,9 +129,13 @@ class CliFastGitignore {
       ) {
         this.CONFIRMED_TOPICS = this.LAST_CACHE.topics;
         shell.echo(
-          `  输入：${chalk.grey(
-            '没有预设',
-          )}，选择读取上次预设 ${this.CONFIRMED_TOPICS.join(', ')}`,
+          CliFastGitignore.isEmpty(this.CONFIRMED_TOPICS)
+            ? `  输入：${chalk.grey(
+                `"${this.USER_DEFINED_CONFIG_READ_PATH}" 无预设，尝试读取上次预设，但上次预设也没有`,
+              )}`
+            : `  输入：${chalk.grey(
+                `"${this.USER_DEFINED_CONFIG_READ_PATH}" 无预设，`,
+              )}尝试读取上次预设 ${this.CONFIRMED_TOPICS.join(', ')}`,
         );
       } else {
         this.CONFIRMED_TOPICS = this.USER_DEFINED_CONFIG.topics;
@@ -265,7 +271,7 @@ class CliFastGitignore {
           }).then(
             () => {
               // 不需要更新 this.LAST_CACHE，因为任务到这里没有任何地方再需要使用 this.LAST_CACHE 了
-              shell.echo('输出：储备当前预设为 "上次预设"，下次使用');
+              shell.echo('  输出：储备当前预设为 "上次预设"，下次使用');
               resolve(true);
             },
             (err) => {
