@@ -1,7 +1,7 @@
 {
   "name": "@iyowei/cli-fast-gitignore",
   "description": "命令行工具，用来生成、更新 .gitignore 文件。 ’github/gitignore‘ 模板库已内嵌。",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "bin": {
     "fast-gitignore": "cli.js",
     "fgi": "cli.js"
