@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { realpathSync, existsSync, writeFile } from 'fs';
+import { existsSync, writeFile } from 'fs';
 import { resolve, join } from 'path';
 import { homedir } from 'os';
 
@@ -374,7 +374,7 @@ class CliFastGitignore {
   }
 
   static resolve(relativePath, base) {
-    return resolve(realpathSync(base), relativePath);
+    return resolve(base, relativePath);
   }
 
   static isEmpty(obj) {

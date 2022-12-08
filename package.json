@@ -21,22 +21,22 @@
   "dependencies": {
     "@iyowei/callsite-home": "^1.0.1",
     "@iyowei/fast-gitignore": "^1.0.5",
-    "chalk": "^5.0.0",
-    "cosmiconfig": "^7.0.1",
+    "chalk": "^5.1.2",
+    "cosmiconfig": "^8.0.0",
     "load-json-file": "^7.0.1",
-    "meow": "^10.1.2",
+    "meow": "^11.0.0",
     "redent": "^4.0.0",
-    "shelljs": "^0.8.4",
+    "shelljs": "^0.8.5",
     "terminal-link": "^3.0.0",
-    "update-notifier": "^5.1.0",
+    "update-notifier": "^6.0.2",
     "write-json-file": "^5.0.0"
   },
   "devDependencies": {
-    "eslint": "^8.6.0",
+    "eslint": "^8.29.0",
     "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-import": "^2.25.3",
-    "prettier": "^2.5.1"
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-import": "^2.26.0",
+    "prettier": "^2.8.1"
   },
   "keywords": [
     "git",
